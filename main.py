@@ -1,5 +1,4 @@
 import psycopg2
-from os import system, name
 
 def show_table(name):
     """function of a request to show data from a table named as 'name' """
@@ -84,10 +83,16 @@ def update_tickets():
                     cursor.execute(update_q, (value, ticket))
                     connection.commit()
                 case 3:
-                    # update book_id
+                    # update book_id (transaction too)
+                    update_b_q1 = "UPDATE bookings SET ticket_id = NULL WHERE ticket_id = %s;"
+                    cursor.execute(update_b_q1, (ticket,))
                     value = int(input("Enter new book_id\n"))
-                    update_q = "UPDATE tickets SET book_id = %s WHERE ticket_id = %s;"
-                    cursor.execute(update_q, (value, ticket))
+                    update_t_q1 = "UPDATE tickets SET book_id = NULL WHERE book_id = %s;"
+                    cursor.execute(update_t_q1, (value,))
+                    update_t_q2 = "UPDATE tickets SET book_id = %s WHERE ticket_id = %s;"
+                    cursor.execute(update_t_q2, (value, ticket))
+                    update_b_q2 = "UPDATE bookings SET ticket_id = %s WHERE book_id = %s;"
+                    cursor.execute(update_b_q2, (ticket, value))
                     connection.commit()
         case 2:
             # own query
@@ -115,10 +120,16 @@ def update_bookings():
                     cursor.execute(update_q, (value, booking))
                     connection.commit()
                 case 2:
-                    # update ticket_id
-                    value = int(input("Enter new seat_id\n"))
-                    update_q = "UPDATE bookings SET ticket_id = %s WHERE book_id = %s;"
-                    cursor.execute(update_q, (value, booking))
+                    # update ticket_id (transaction too)
+                    update_t_q1="UPDATE tickets SET book_id = NULL WHERE book_id = %s;"
+                    cursor.execute(update_t_q1, (booking, ))
+                    value = int(input("Enter new ticket_id\n"))
+                    update_b_q1 = "UPDATE bookings SET ticket_id = NULL WHERE ticket_id = %s;"
+                    cursor.execute(update_b_q1, (value, ))
+                    update_b_q2 = "UPDATE bookings SET ticket_id = %s WHERE book_id = %s;"
+                    cursor.execute(update_b_q2, (value, booking))
+                    update_t_q2="UPDATE tickets SET book_id = %s WHERE ticket_id = %s;"
+                    cursor.execute(update_t_q2, (booking, value))
                     connection.commit()
         case 2:
             # own query
@@ -131,7 +142,7 @@ def update_bookings():
 
 def delete_tickets():
     """function of a request to delete data from table tickets: you can create a query that the program offers
-    # or you can write your own if you need something more complex"""
+    or you can write your own if you need something more complex"""
 
     switch = int(input("1. Delete certain ticket\n2. Enter SQL query\n"))
     match switch:
@@ -149,7 +160,7 @@ def delete_tickets():
 
 def delete_bookings():
     """function of a request to delete data from table bookings: you can create a query that the program offers
-    # or you can write your own if you need something more complex"""
+    or you can write your own if you need something more complex"""
 
     switch = int(input("1. Delete certain booking\n2. Enter SQL query\n"))
     match switch:
